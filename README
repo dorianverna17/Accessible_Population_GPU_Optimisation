@@ -1,0 +1,133 @@
+Verna Dorian-Alexandru 334CC
+Tema 3 ASC
+
+Organizare:
+
+-> Am urmat urmatorii pasi in implementare:
+    - am reluat laboratorul 7 pentru a stii cum sa folosesc CUDA
+	- am facut implementarea functiei principale in helper.cu
+	- am observat ca da TIMEOUT cu metoda de calcul folosind sinus si cosinus
+	- am pus in kernel un calcul cu teorema lui Pitagora
+	- am testat pe toate cozile pe care trebuia testat
+
+-> Abordare generala:
+    - In general, implementarea se bazeaza pe task-ul 1 de la
+	laboratorul 7.
+	- In sampleFile_IO: am declarat niste cate un vector de float,
+	respectiv int pentru datele primite din fisierul de intrare.
+	Am declarat cate un buffer de acest tip si pentru host, si
+	pentru device (latitudine, longitudine, populatie si rezultat).
+	Am alocat memorie (cu malloc sau cudaMalloc in functie de
+	device sau host). Apoi am citit din fisier datele necesare.
+	Apoi am folosit cudaMemcpy pentru a copia datele de pe host
+	pe device, am calculat numarul de blocuri necesare si
+	am setat dimensiunea unui bloc, dupa care am apelat
+	functia kernel. Dupa terminarea acesteia, realizez
+	sincronizarea device-urilor si copiez datele de pe device
+	pe host, urmand ca mai apoi sa afisez datele in fisier si mai
+	apoi sa dezaloc memoria.
+	- In kernel am calculat prima oara pozitia elementului
+	pentru care vreau sa calculez populatia accesibila.
+	Apoi am calculat cu teorema lui Pitagora distanta de la
+	orasul respectiv la fiecare dintre celelalte orase, iar 
+	daca distanta este mai mica decat kmRange, atunci adaug
+	populatia orasului respectiv la cea rezultat pentru orasul
+	respectiv. In acest loop am folosit loop unrolling cu
+	speranta ca o sa fie mai eficienta computatia. De asemenea,
+	am folosit register aproape peste tot pentru a eficientiza totul.
+	- Am adaugat comentarii in cod pentru a ajuta la intelegerea
+	implementarii, sper sa fie ok.
+
+
+-> Utilitate tema:
+    - Tema a fost destul de utila, mi-a placut pentru ca
+    am avut ocazia sa mai invat lucruri pe care nu am apucat
+    sa le inteleg in totalitate la laborator. Cu ocazia
+    temei a trebuit sa trec in revista si anumite elemente
+    studiate la laborator (CUDA) si de optimizare:))
+
+-> Consider implementarea mea ca este ok, nu pot spune ca a
+    fost neaparat naiva, dar nici ca a fost cea mai eficienta.
+    Un lucru care cred ca ar fi fost posibil mai eficient ar
+    fi fost sa retin cumva latitudinea si longitudinea direct 
+	in radiani pentru fiecare oras, fara sa mai trebuiasca sa
+	inmultesc cu DEGREES_TO_RADIANS tot timpul in loop.
+-> Am intalnit probleme la K40M, acolo tot imi da TIMEOUT, si
+	am folosit register aproape peste tot. Pe langa asta, am
+	ales sa fac si loop unrolling dar pare prea putin. Cu toate
+	acestea, pe celelalte cozi merge implementarea, am atasat
+	aici output-urile comenzilor, si din cate am inteles si de
+	pe forum, este okay daca ne trece pe celelalte doua cozi.
+
+Implementare:
+-> Consider ca am implementat intreg-ul enunt al temei
+-> Nu consider ca exista functionalitati lipsa
+
+Resurse utilizate
+https://ocw.cs.pub.ro/courses/asc/laboratoare/07 -> de aici am preluat
+implementarea pentru procesul de alocare de memorie si transpunere
+date de la host la device si invers, precum si apelarea unui kernel
+
+Nu am un link pt repo-ul de git, nu am folosit versionare
+
+
+Mai jos este output-ul pentru fiecare dintre urmatoarele rulari:
+
+//////A100//////// 
+Singularity> ./run_local_checker.sh
+make: Entering directory `/export/home/acs/stud/d/dorian.verna/asctema3/sol'
+rm -f gpu_sol *.o
+make: Leaving directory `/export/home/acs/stud/d/dorian.verna/asctema3/sol'
+make: Entering directory `/export/home/acs/stud/d/dorian.verna/asctema3/sol'
+nvcc -g helper.cu -c -O0
+nvcc -g -arch=sm_35 -rdc=true main.cpp helper.o -o gpu_sol -O0
+make: Leaving directory `/export/home/acs/stud/d/dorian.verna/asctema3/sol'
+--------------------------------
+Executing tests on A100 with timeout: 18s
+--------------------------------
+B0 Passed .... 10p
+E1 Passed .... 20p
+M1 Passed .... 20p
+M2 Passed .... 20p
+H1 Passed .... 20p
+--------------------------------
+Final score:   90/90
+Singularity>
+///////
+
+///////P100//////////
+Singularity> ./run_local_checker.sh
+make: Entering directory `/export/home/acs/stud/d/dorian.verna/asctema3/sol'
+rm -f gpu_sol *.o
+make: Leaving directory `/export/home/acs/stud/d/dorian.verna/asctema3/sol'
+make: Entering directory `/export/home/acs/stud/d/dorian.verna/asctema3/sol'
+nvcc -g helper.cu -c -O0
+nvcc -g -arch=sm_35 -rdc=true main.cpp helper.o -o gpu_sol -O0
+make: Leaving directory `/export/home/acs/stud/d/dorian.verna/asctema3/sol'
+--------------------------------
+Executing tests on P100 with timeout: 15s
+--------------------------------
+B0 Passed .... 10p
+E1 Passed .... 20p
+M1 Passed .... 20p
+M2 Passed .... 20p
+H1 Passed .... 20p
+--------------------------------
+Final score:   90/90
+Singularity>
+
+////////K40M/////////
+Singularity> ./run_local_checker.sh
+make: Entering directory `/export/home/acs/stud/d/dorian.verna/asctema3/sol'
+rm -f gpu_sol *.o
+make: Leaving directory `/export/home/acs/stud/d/dorian.verna/asctema3/sol'
+make: Entering directory `/export/home/acs/stud/d/dorian.verna/asctema3/sol'
+nvcc -g helper.cu -c -O0
+nvcc -g -arch=sm_35 -rdc=true main.cpp helper.o -o gpu_sol -O0
+make: Leaving directory `/export/home/acs/stud/d/dorian.verna/asctema3/sol'
+--------------------------------
+Executing tests on K40M with timeout: 30s
+TIMEOUT
+--------------------------------
+Final score:   0/90
+Singularity>
